@@ -1,5 +1,7 @@
 import re
 import math
+
+from zaber_motion.ascii import device
 constant_time_velo={"global_1":0,         #time
 "global_2":0,                   #time
 "global_3":0,                   #time
@@ -14,6 +16,8 @@ constant_pump={"pump_x":0,
 "pump_y":0,
 "pump_z":0}
 
+intial_dict={"X":0,"Y":0,"Z":0}
+
 class pump():
     def __init__(self,dct_pump):
         self.dct_pump=dct_pump
@@ -23,6 +27,7 @@ class pump():
 
 
 class coord():
+    global intial_dict
     def __init__(self,line_list):
         self.default_dict={"X":None,
         "Y":None,
@@ -37,7 +42,7 @@ class coord():
             del self.line_list[0]
         self.value_dct={v:self.line_list[(i+1)] for i,v in enumerate(self.line_list) if v=="X" or v=="Y" or v=="Z"}        #creates a dictionary with X,Y and Z values
         for keys in self.value_dct.keys():
-         self.default_dict[keys]=self.value_dct[keys]     
+         intial_dict[keys]=self.value_dct[keys]     
 
     
 
@@ -56,7 +61,7 @@ def output_line(input_file_location,output_file_location):
                 "\tdevice = device_list[0]\n",
                 "\tnum_streams = device.settings.get('stream.numstreams')\n",
                 "\tstream = device.get_stream(1)\n",
-                "\tstream.setup_live(1,2,3)\n",
+                "\tstream.setup_live(2,3,1)\n",
 ]
     with open (output_file_location,'a') as file:
         file.seek(0) 
@@ -80,25 +85,22 @@ def output_line(input_file_location,output_file_location):
                             val=pump(constant_pump).sum
                             
                             if val==0:
-                                file.write("\tstream.device.wait("+str(constant_time_velo["global_2"])+", Units.TIME_SECONDS)"+"\n")
+                                file.write("\tstream.wait("+str(constant_time_velo["global_2"])+", Units.TIME_SECONDS)"+"\n")
                                 #file.write("\tdevice.all_axes.move_velocity("+str(constant_time_velo["global_7"])+ ", unit = Units.VELOCITY_MILLIMETRES_PER_SECOND)"+"\n")
-                                file.write("\tstream.set_velocity("+str(constant_time_velo["global_7"])+ ", unit = Units.VELOCITY_MILLIMETRES_PER_SECOND)"+"\n")
+                                file.write("\tstream.set_max_speed("+str(constant_time_velo["global_7"])+ ", unit = Units.VELOCITY_MILLIMETRES_PER_SECOND)"+"\n")
 
                             if val==1:
                                 #file.write("\tdevice.all_axes.move_velocity("+str(constant_time_velo["global_8"])+ ", unit = Units.VELOCITY_MILLIMETRES_PER_SECOND)"+"\n")
-                                file.write("\tstream.set_velocity("+str(constant_time_velo["global_8"])+ ", unit = Units.VELOCITY_MILLIMETRES_PER_SECOND)"+"\n")
+                                file.write("\tstream.set_max_speed("+str(constant_time_velo["global_8"])+ ", unit = Units.VELOCITY_MILLIMETRES_PER_SECOND)"+"\n")
                                 file.write("\tstream.wait("+str(constant_time_velo["global_1"])+", unit = Units.TIME_SECONDS)"+"\n")
                             
                         elif (line_list[0]=="G01"):
                             coordinat=coord(line_list)
                             axis={"X":0,"Y":1,"Z":2}
-                            
-                            for key,values in coordinat.default_dict.items():
-                                if coordinat.default_dict[key]== None:
-                                    axis.pop(key)
-                            for axes,values in axis.items():
                                 #file.write("\taxis_"+axes+".move_absolute("+str(coordinat.default_dict[axes])+", Units.LENGTH_MILLIMETRES, wait_until_idle=False)"+"\n")
-                                file.write("\tstream.line_absolute_on(["+str(values)+"],[Measurement("+str(coordinat.default_dict[axes])+", Units.LENGTH_MILLIMETRES)])\n")
-                            file.write("\tdevice.all_axes.wait_until_idle()\n")           
-output_line(r"C:\Users\bb237\Documents\multiaxis\zaber\Gcode_example\try_1_cube",r"C:\Users\bb237\Documents\multiaxis\zaber\Gcode_example\new_file.txt")        #input file location,output file location
+
+                                    #file.write("\tstream.line_absolute_on(["+str(values)+"],[Measurement("+str(100+float(coordinat.default_dict[axes]))+", Units.LENGTH_MILLIMETRES)])\n")
+                            file.write("\tstream.line_absolute(Measurement("+str(intial_dict["X"])+", Units.LENGTH_MILLIMETRES),Measurement("+str(intial_dict["Y"])+", Units.LENGTH_MILLIMETRES),Measurement("+str(100+float(intial_dict["Z"]))+", Units.LENGTH_MILLIMETRES))\n")
+                            #file.write("\tdevice.all_axes.wait_until_idle()\n")           
+output_line(r"C:\Users\bb237\Documents\muliaxis\multiaxis\G-Code\Gcode_example\try_1_cube",r"C:\Users\bb237\Documents\muliaxis\multiaxis\G-Code\Gcode_example\new_file.txt")        #input file location,output file location
         #change the output file location
