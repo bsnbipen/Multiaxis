@@ -1,3 +1,7 @@
+
+'pump1=device.io.set_all_digital_outputs(1,True)'
+'pump2=device.io.set_all_digital_outputs(2,True)'
+
 import re
 import math
 constant_time_velo={"global_1":0,         #time
@@ -77,6 +81,10 @@ def output_line(input_file_location,output_file_location):
                 
                         elif (re.search(r"\$\D\w\[\d\]\.[A-Z]\=",line_list[0])):
                             constant_pump["pump_"+line_list[0][7]]=line_list[0][9] 
+                            if int(constant_pump)==0:
+                                file.write("\tpump1=device.io.set_all_digital_outputs(1,False)"+"\n")
+                            else:
+                                file.write("\tpump1=device.io.set_all_digital_outputs(1,True)"+"\n")
                             val=pump(constant_pump).sum
                             
                             if val==0:
